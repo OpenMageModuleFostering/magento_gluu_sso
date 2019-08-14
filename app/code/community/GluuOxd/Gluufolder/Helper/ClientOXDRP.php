@@ -3,7 +3,7 @@
  * Created Vlad Karapetyan
  */
 
-abstract class GluuOxd_Openid_Helper_ClientOXDRP extends Mage_Core_Helper_Abstract{
+abstract class GluuOxd_Gluufolder_Helper_ClientOXDRP extends Mage_Core_Helper_Abstract{
 
     protected $data = array();
     protected $command;
@@ -12,8 +12,6 @@ abstract class GluuOxd_Openid_Helper_ClientOXDRP extends Mage_Core_Helper_Abstra
     protected $response_object;
     protected $response_data = array();
     protected static $socket = null;
-    protected $oxd_config;
-    protected $oxd_host_port;
 
 
     /**
@@ -21,39 +19,14 @@ abstract class GluuOxd_Openid_Helper_ClientOXDRP extends Mage_Core_Helper_Abstra
      */
     public function __construct()
     {
-        $this->oxd_config = unserialize(Mage::getStoreConfig ( 'gluu/oxd/oxd_config' ));
-
         $this->setCommand();
-
     }
-
-    /**
-     * @return mixed
-     */
-    public function getOxdHostPort()
-    {
-        return $this->oxd_host_port;
-    }
-
-    /**
-     * @param mixed $oxd_host_port
-     */
-    public function setOxdHostPort($oxd_host_port)
-    {
-        $this->oxd_host_port = $oxd_host_port;
-    }
-
     /**
      * request to oxd socket
      **/
     public function oxd_socket_request($data, $char_count = 8192){
-        $oxd_host_port = '';
-        if($this->getOxdHostPort()){
-            $oxd_host_port = $this->getOxdHostPort();
-        }else{
-            $oxd_host_port = $this->oxd_config['oxd_host_port'];
-        }
-        self::$socket = stream_socket_client( $this->oxd_config['oxd_host_ip'] . ':' . $oxd_host_port, $errno, $errstr, STREAM_CLIENT_PERSISTENT);
+        $oxd_config = json_decode(Mage::getStoreConfig('gluu/oxd/gluu_config'), true);
+        self::$socket = stream_socket_client('127.0.0.1:' . $oxd_config['gluu_oxd_port'], $errno, $errstr, STREAM_CLIENT_PERSISTENT);
         if (!self::$socket) {
             return 'Can not connect to oxd server';
         }else{
@@ -84,20 +57,25 @@ abstract class GluuOxd_Openid_Helper_ClientOXDRP extends Mage_Core_Helper_Abstra
         }
 
         $this->response_json =  $this->oxd_socket_request(utf8_encode($lenght . $jsondata));
-
         if($this->response_json !='Can not connect to oxd server'){
             $this->response_json = str_replace(substr($this->response_json, 0, 4), "", $this->response_json);
             if ($this->response_json) {
                 $object = json_decode($this->response_json);
                 if ($object->status == 'error') {
-                    return array('status'=> false, 'message'=> $object->data->error . ' : ' . $object->data->error_description);
+                    if($object->data->error == "invalid_op_host"){
+                        return array('status'=> false, 'message'=> $object->data->error);
+                    }elseif($object->data->error == "internal_error"){
+                        return array('status'=> false, 'message'=> $object->data->error , 'error_message'=>$object->data->error_description);
+                    }else{
+                        return array('status'=> false, 'message'=> $object->data->error . ' : ' . $object->data->error_description);
+                    }
                 } elseif ($object->status == 'ok') {
                     $this->response_object = json_decode($this->response_json);
                     return array('status'=> true);
                 }
             }
         }else{
-            return array('status'=> false, 'message'=> 'Can not connect to oxd server. Please look file oxd-config.json  configuration in your oxd server.');
+            return array('status'=> false, 'message'=> 'Can not connect to the oxd server. Please check the oxd-config.json file to make sure you have entered the correct port and the oxd server is operational.');
         }
 
     }
@@ -109,7 +87,7 @@ abstract class GluuOxd_Openid_Helper_ClientOXDRP extends Mage_Core_Helper_Abstra
     {
         if (!$this->getResponseObject()) {
             $this->response_data = 'Data is empty';
-            return ;
+            return;
         } else {
             $this->response_data = $this->getResponseObject()->data;
         }
@@ -168,6 +146,5 @@ abstract class GluuOxd_Openid_Helper_ClientOXDRP extends Mage_Core_Helper_Abstra
     {
         return $this->params;
     }
-
 
 }

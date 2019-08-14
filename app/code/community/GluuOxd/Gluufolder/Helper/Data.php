@@ -4,7 +4,7 @@
  * Created by PhpStorm.
  * User: Vlad Karapetyan
  */
-class GluuOxd_Openid_Helper_Data extends Mage_Core_Helper_Abstract
+class GluuOxd_Gluufolder_Helper_Data extends Mage_Core_Helper_Abstract
 {
     /**
      * displaying message

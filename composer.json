@@ -3,7 +3,7 @@
     "type": "magento-module",
     "license": "Gluu-inc.",
     "homepage": "",
-    "description": "Gluu and Social login extension for magento",
+    "description": "Gluu OpenID Connect SSO extension for magento",
     "authors": [
     {
         "name": "Vlad",
