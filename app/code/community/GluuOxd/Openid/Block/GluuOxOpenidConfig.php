@@ -10,7 +10,6 @@ class GluuOxd_Openid_Block_GluuOxOpenidConfig extends Mage_Core_Block_Template{
     private $getUserInfo = "GluuOxd_Openid/getUserInfo";
     private $logout = "GluuOxd_Openid/logout";
 
-
     /**
      * Administrator logout action
      */
@@ -29,31 +28,12 @@ class GluuOxd_Openid_Block_GluuOxOpenidConfig extends Mage_Core_Block_Template{
             $logout->request();
             header("Location: ".$logout->getResponseObject()->data->uri);
             exit;
+            //echo "<a href='".$logout->getResponseObject()->data->uri."'>Logout from all sites.</a>";
+
         }
 
     }
-    /**
-     * Administrator logout action
-     */
-    public function logout_validation_admin()
-    {
 
-
-        if($_SESSION['state']){
-            $config_option = unserialize(Mage::getStoreConfig ( 'gluu/oxd/oxd_config_admin' ));
-            $oxd_id = Mage::getStoreConfig ( 'gluu/oxd/oxd_id_admin' );
-            $logout = $this->getLogout();
-            $logout->setRequestOxdId($oxd_id);
-            $logout->setRequestIdToken($_SESSION['user_oxd_id_token_admin']);
-            $logout->setRequestPostLogoutRedirectUri($config_option['logout_redirect_uri']);
-            $logout->setRequestSessionState($_SESSION['session_state_admin']);
-            $logout->setRequestState($_SESSION['state_admin']);
-            $logout->request();
-            header("Location: ".$logout->getResponseObject()->data->uri);
-            exit;
-        }
-
-    }
     /**
      * @return string
      */
@@ -256,223 +236,7 @@ class GluuOxd_Openid_Block_GluuOxOpenidConfig extends Mage_Core_Block_Template{
     public function getOpenIdAdminUrl(){
         return Mage::helper("adminhtml")->getUrl("*/index/index");
     }
-    function _getRequestUri($request = null)
-{
-         if (Mage::getSingleton('adminhtml/url')->useSecretKey()) {
-             return Mage::getSingleton('adminhtml/url')->getUrl('*/*/*', array('_current' => true));
-         } elseif ($request) {
-                 return $request->getRequestUri();
-         } else {
-                 return null;
-         }
-     }
-    /**
-     * getting admin login page validateing
-     * return @string
-     */
-    public function gluuoxd_openid_login_admin(){
 
-        if(isset( $_REQUEST['option'] ) and strpos( $_REQUEST['option'], 'getOxdSocialLogin' ) !== false ) {
-
-            $config_option = unserialize(Mage::getStoreConfig ( 'gluu/oxd/oxd_config_admin' ));
-            $oxd_id = Mage::getStoreConfig ( 'gluu/oxd/oxd_id_admin' );
-            $get_tokens_by_code = $this->getGetTokensByCode();
-            $get_tokens_by_code->setRequestOxdId($oxd_id);
-            $get_tokens_by_code->setRequestCode($_REQUEST['code']);
-            $get_tokens_by_code->setRequestState($_REQUEST['state']);
-            $get_tokens_by_code->setRequestScopes($config_option["scope"]);
-            $get_tokens_by_code->request();
-            $get_tokens_by_code_array = $get_tokens_by_code->getResponseObject()->data->id_token_claims;
-            //var_dump($get_tokens_by_code_array);exit;
-            $_SESSION['user_oxd_id_token_admin']  = $get_tokens_by_code->getResponseIdToken();
-            $_SESSION['user_oxd_access_token_admin']  = $get_tokens_by_code->getResponseAccessToken();
-            $_SESSION['session_state_admin'] = $_REQUEST['session_state'];
-            $_SESSION['state_admin'] = $_REQUEST['state'];
-            $get_user_info = $this->getGetUserInfo();
-            $get_user_info->setRequestOxdId($oxd_id);
-            $get_user_info->setRequestAccessToken($_SESSION['user_oxd_access_token_admin']);
-            $get_user_info->request();
-            $get_user_info_array = $get_user_info->getResponseObject()->data->claims;
-            $reg_first_name = '';
-            $reg_last_name = '';
-            $reg_middle_name = '';
-            $reg_email = '';
-            $reg_country = '';
-            $reg_city = '';
-            $reg_region = '';
-            $reg_gender = '';
-            $reg_postal_code = '';
-            $reg_fax = '';
-            $reg_home_phone_number = '';
-            $reg_phone_mobile_number = '';
-            $reg_avatar = '';
-            $reg_street_address = '';
-            $reg_birthdate = '';
-            if($get_user_info_array->given_name[0]){
-                $reg_first_name = $get_user_info_array->given_name[0];
-            }elseif($get_tokens_by_code_array->given_name[0]){
-                $reg_first_name = $get_tokens_by_code_array->given_name[0];
-            }
-            if($get_user_info_array->family_name[0]){
-                $reg_last_name = $get_user_info_array->family_name[0];
-            }elseif($get_tokens_by_code_array->family_name[0]){
-                $reg_last_name = $get_tokens_by_code_array->family_name[0];
-            }
-            if($get_user_info_array->middle_name[0]){
-                $reg_middle_name = $get_user_info_array->middle_name[0];
-            }elseif($get_tokens_by_code_array->middle_name[0]){
-                $reg_middle_name = $get_tokens_by_code_array->middle_name[0];
-            }
-            if($get_user_info_array->email[0]){
-                $reg_email = $get_user_info_array->email[0];
-            }elseif($get_tokens_by_code_array->email[0]){
-                $reg_email = $get_tokens_by_code_array->email[0];
-            }
-            if($get_user_info_array->country[0]){
-                $reg_country = $get_user_info_array->country[0];
-            }elseif($get_tokens_by_code_array->country[0]){
-                $reg_country = $get_tokens_by_code_array->country[0];
-            }
-            if($get_user_info_array->gender[0]){
-                if($get_user_info_array->gender[0] == 'male'){
-                    $reg_gender = '1';
-                }else{
-                    $reg_gender = '2';
-                }
-
-            }elseif($get_tokens_by_code_array->gender[0]){
-                if($get_tokens_by_code_array->gender[0] == 'male'){
-                    $reg_gender = '1';
-                }else{
-                    $reg_gender = '2';
-                }
-            }
-            if($get_user_info_array->locality[0]){
-                $reg_city = $get_user_info_array->locality[0];
-            }elseif($get_tokens_by_code_array->locality[0]){
-                $reg_city = $get_tokens_by_code_array->locality[0];
-            }
-            if($get_user_info_array->postal_code[0]){
-                $reg_postal_code = $get_user_info_array->postal_code[0];
-            }elseif($get_tokens_by_code_array->postal_code[0]){
-                $reg_postal_code = $get_tokens_by_code_array->postal_code[0];
-            }
-            if($get_user_info_array->phone_number[0]){
-                $reg_home_phone_number = $get_user_info_array->phone_number[0];
-            }elseif($get_tokens_by_code_array->phone_number[0]){
-                $reg_home_phone_number = $get_tokens_by_code_array->phone_number[0];
-            }
-            if($get_user_info_array->phone_mobile_number[0]){
-                $reg_phone_mobile_number = $get_user_info_array->phone_mobile_number[0];
-            }elseif($get_tokens_by_code_array->phone_mobile_number[0]){
-                $reg_phone_mobile_number = $get_tokens_by_code_array->phone_mobile_number[0];
-            }
-            if($get_user_info_array->picture[0]){
-                $reg_avatar = $get_user_info_array->picture[0];
-            }elseif($get_tokens_by_code_array->picture[0]){
-                $reg_avatar = $get_tokens_by_code_array->picture[0];
-            }
-            if($get_user_info_array->street_address[0]){
-                $reg_street_address = $get_user_info_array->street_address[0];
-            }elseif($get_tokens_by_code_array->street_address[0]){
-                $reg_street_address = $get_tokens_by_code_array->street_address[0];
-            }
-            if($get_user_info_array->birthdate[0]){
-                $reg_birthdate = $get_user_info_array->birthdate[0];
-            }elseif($get_tokens_by_code_array->birthdate[0]){
-                $reg_birthdate = $get_tokens_by_code_array->birthdate[0];
-            }
-            if($get_user_info_array->region[0]){
-                $reg_region = $get_user_info_array->region[0];
-            }elseif($get_tokens_by_code_array->region[0]){
-                $reg_region = $get_tokens_by_code_array->region[0];
-            }
-            if( $reg_email ) {
-                # Create New admin User programmatically.
-                require_once('./app/Mage.php');
-                umask(0);
-                Mage::app();
-                $user = Mage::getModel('admin/user');
-                $data= $user->loadByUsername($reg_email);
-                if($user->getId()){
-                    if ($data->_data['user_id']) {
-                        if (Mage::getSingleton('adminhtml/url')->useSecretKey()) {
-                            Mage::getSingleton('adminhtml/url')->renewSecretUrls();
-                        }
-                        $session = Mage::getSingleton('admin/session');
-                        $session->setIsFirstVisit(true);
-                        $session->setUser($user);
-                        $session->setAcl(Mage::getResourceModel('admin/acl')->loadAcl());
-                        if ($requestUri = $this->_getRequestUri(null)) {
-                            Mage::dispatchEvent('admin_session_user_login_success', array('user'=>$user));
-                            header('Location: ' . $requestUri);
-                            exit;
-                        }
-                    }
-                    else {
-                        Mage::throwException(Mage::helper('adminhtml')->__('Invalid Username or Password.'));
-                    }
-                    header("Refresh:0");
-                }else{
-                    $password = md5(Mage::helper('core')->getRandomString($length = 7));
-
-                    $user = Mage::getModel('admin/user')
-                        ->setData(array(
-                            'username'  => $reg_email,
-                            'firstname' => $reg_first_name,
-                            'lastname'    => $reg_last_name,
-                            'email'     => $reg_email,
-                            'password'  =>$password,
-                            'is_active' => 1
-                        ))->save();
-                    $role = Mage::getModel("admin/role");
-                    $role->setParent_id(1);
-                    $role->setTree_level(2);
-                    $role->setRole_type('U');
-                    $role->setUser_id($user->getId());
-                    $role->setRole_name($user->getFirstname());
-                    $role->save();
-                    $user = Mage::getModel('admin/user');
-                    $user->login($reg_email, $password);
-                    if ($user->getId()) {
-                        if (Mage::getSingleton('adminhtml/url')->useSecretKey()) {
-                            Mage::getSingleton('adminhtml/url')->renewSecretUrls();
-                        }
-                        $session = Mage::getSingleton('admin/session');
-                        $session->setIsFirstVisit(true);
-                        $session->setUser($user);
-                        $session->setAcl(Mage::getResourceModel('admin/acl')->loadAcl());
-                        if ($requestUri = $this->_getRequestUri(null)) {
-                            Mage::dispatchEvent('admin_session_user_login_success', array('user'=>$user));
-                            header('Location: ' . $requestUri);
-                            exit;
-                        }
-                    }
-                    else {
-                        Mage::throwException(Mage::helper('adminhtml')->__('Invalid Username or Password.'));
-                    }
-
-                }
-            }else{
-                echo '<p style="color: red">Sorry, but gluu server cannot find email address!</p>';
-            }
-        }
-        if( isset( $_REQUEST['option'] ) and strpos( $_REQUEST['option'], 'userGluuLoginAdmin' ) !== false ) {
-            $config_option = unserialize(Mage::getStoreConfig ( 'gluu/oxd/oxd_config' ));
-            $oxd_id = Mage::getStoreConfig ( 'gluu/oxd/oxd_id_admin' );
-            $get_authorization_url = $this->getGetAuthorizationUrl();
-            $get_authorization_url->setRequestOxdId($oxd_id);
-            $get_authorization_url->setRequestAcrValues([$_REQUEST['app_name']]);
-            $get_authorization_url->request();
-            //var_dump($get_authorization_url->getResponseObject());exit;
-            if($get_authorization_url->getResponseAuthorizationUrl()){
-                header("Location: ".$get_authorization_url->getResponseAuthorizationUrl());
-                exit;
-            }else{
-                echo '<p style="color: red">Sorry, but oxd server is not switched on!</p>';
-            }
-        }
-    }
     /**
      * getting login page validateing
      * return @string
@@ -490,6 +254,7 @@ class GluuOxd_Openid_Block_GluuOxOpenidConfig extends Mage_Core_Block_Template{
             $get_tokens_by_code->setRequestScopes($config_option["scope"]);
             $get_tokens_by_code->request();
             $get_tokens_by_code_array = $get_tokens_by_code->getResponseObject()->data->id_token_claims;
+
             $_SESSION['user_oxd_id_token']  = $get_tokens_by_code->getResponseIdToken();
             $_SESSION['user_oxd_access_token']  = $get_tokens_by_code->getResponseAccessToken();
             $_SESSION['session_state'] = $_REQUEST['session_state'];
@@ -500,6 +265,7 @@ class GluuOxd_Openid_Block_GluuOxOpenidConfig extends Mage_Core_Block_Template{
             $get_user_info->setRequestAccessToken($_SESSION['user_oxd_access_token']);
             $get_user_info->request();
             $get_user_info_array = $get_user_info->getResponseObject()->data->claims;
+
             $reg_first_name = '';
             $reg_last_name = '';
             $reg_middle_name = '';
@@ -678,7 +444,6 @@ class GluuOxd_Openid_Block_GluuOxOpenidConfig extends Mage_Core_Block_Template{
             }
         }
         if( isset( $_REQUEST['option'] ) and strpos( $_REQUEST['option'], 'userGluuLogin' ) !== false ) {
-
             $config_option = unserialize(Mage::getStoreConfig ( 'gluu/oxd/oxd_config' ));
             $oxd_id = Mage::getStoreConfig ( 'gluu/oxd/oxd_id' );
             $get_authorization_url = $this->getGetAuthorizationUrl();

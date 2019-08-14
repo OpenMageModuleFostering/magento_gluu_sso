@@ -8,18 +8,8 @@ class GluuOxd_Openid_Adminhtml_IndexController extends Mage_Adminhtml_Controller
 {
     private $dataHelper = "GluuOxd_Openid";
     private $oxdRegisterSiteHelper = "GluuOxd_Openid/registerSite";
+    private $oxdUpdateSiteRegistrationHelper = "GluuOxd_Openid/updateSiteRegistration";
 
-    public function logoutAction()
-    {
-        echo 'ssdadad';exit;
-        /** @var $adminSession Mage_Admin_Model_Session */
-        $adminSession = Mage::getSingleton('admin/session');
-        $adminSession->unsetAll();
-        $adminSession->getCookie()->delete($adminSession->getSessionName());
-        $adminSession->addSuccess(Mage::helper('adminhtml')->__('You have logged out.'));
-
-        $this->_redirect('*');
-    }
     /**
      * @return string
      */
@@ -28,11 +18,20 @@ class GluuOxd_Openid_Adminhtml_IndexController extends Mage_Adminhtml_Controller
         return Mage::helper($this->oxdRegisterSiteHelper);
     }
     /**
+     * @return string
+     */
+    public function getOxdUpdateSiteRegistrationHelper()
+    {
+        return Mage::helper($this->oxdUpdateSiteRegistrationHelper);
+    }
+    /**
      * @return gluuOxd admin index page
      */
     public function indexAction(){
 
+
         $storeConfig = new Mage_Core_Model_Config();
+
         if(empty(unserialize(Mage::getStoreConfig ( 'gluu/oxd/oxd_config' )))){
 
             $config_option = array(
@@ -50,23 +49,6 @@ class GluuOxd_Openid_Adminhtml_IndexController extends Mage_Adminhtml_Controller
             );
             if(empty(unserialize(Mage::getStoreConfig ( 'gluu/oxd/oxd_config' )))){
                 $storeConfig ->saveConfig('gluu/oxd/oxd_config',serialize($config_option), 'default', 0);
-            }
-
-            $config_option_admin = array(
-                "oxd_host_ip" => '127.0.0.1',
-                "oxd_host_port" =>8099,
-                "admin_email" => Mage::getSingleton('admin/session')->getUser()->getEmail(),
-                "authorization_redirect_uri" => $this->getUrl('adminhtml').'?option=getOxdSocialLogin',
-                "logout_redirect_uri" => $this->getUrl('adminhtml/index/logout'),
-                "scope" => ["openid", "profile","email","address", "clientinfo", "mobile_phone", "phone"],
-                "grant_types" =>["authorization_code"],
-                "response_types" => ["code"],
-                "application_type" => "web",
-                "redirect_uris" => [ $this->getUrl('adminhtml').'?option=getOxdSocialLogin' ],
-                "acr_values" => [],
-            );
-            if(empty(unserialize(Mage::getStoreConfig ( 'gluu/oxd/oxd_config_admin' )))){
-                $storeConfig ->saveConfig('gluu/oxd/oxd_config_admin',serialize($config_option_admin), 'default', 0);
             }
         }
         if(empty(unserialize(Mage::getStoreConfig ( 'gluu/oxd/oxd_openid_scops' )))){
@@ -170,27 +152,6 @@ class GluuOxd_Openid_Adminhtml_IndexController extends Mage_Adminhtml_Controller
         }
         if($registerSite->getResponseOxdId()){
             $storeConfig ->saveConfig('gluu/oxd/oxd_id',$registerSite->getResponseOxdId(), 'default', 0);
-            $config_option_admin = unserialize(Mage::getStoreConfig ( 'gluu/oxd/oxd_config_admin' ));
-            $config_option_admin['oxd_host_port'] = $params['oxd_port'];
-
-            $config_option_admin['admin_email'] = $email;
-            $storeConfig ->saveConfig('gluu/oxd/oxd_config_admin',serialize($config_option), 'default', 0);
-            $config_option_admin = unserialize(Mage::getStoreConfig ( 'gluu/oxd/oxd_config_admin' ));
-
-            $registerSiteAdmin = $this->getOxdRegisterSiteHelper();
-            $registerSiteAdmin->setOxdHostPort($params['oxd_port']);
-            $registerSiteAdmin->setRequestAcrValues($config_option_admin['acr_values']);
-            $registerSiteAdmin->setRequestAuthorizationRedirectUri($config_option_admin['authorization_redirect_uri']);
-            $registerSiteAdmin->setRequestRedirectUris($config_option_admin['redirect_uris']);
-            $registerSiteAdmin->setRequestLogoutRedirectUri($config_option_admin['logout_redirect_uri']);
-            $registerSiteAdmin->setRequestContacts([$config_option_admin['admin_email']]);
-            $registerSiteAdmin->setRequestApplicationType('web');
-            $registerSiteAdmin->setRequestScope($config_option_admin['scope']);
-            $registerSiteAdmin->setRequestGrantTypes($config_option_admin['grant_types']);
-            $registerSiteAdmin->setRequestResponseTypes($config_option_admin['response_types']);
-            $registerSiteAdmin->setRequestClientLogoutUri($config_option_admin['logout_redirect_uri']);
-            $status = $registerSiteAdmin->request();
-            $storeConfig ->saveConfig('gluu/oxd/oxd_id_admin',$registerSiteAdmin->getResponseOxdId(), 'default', 0);
             $datahelper->displayMessage('Site registered Successful. You can configure Gluu and Social Login now.',"SUCCESS");
             $this->redirect("*/*/index");
             return;
@@ -207,10 +168,8 @@ class GluuOxd_Openid_Adminhtml_IndexController extends Mage_Adminhtml_Controller
             $setup ->deleteConfig('GluuOxd/Openid/'.$custom_script['value'].'Enable');
         }
         $setup->deleteConfig('gluu/oxd/oxd_id');
-        $setup->deleteConfig('gluu/oxd/oxd_id_admin');
         $setup->deleteConfig('gluu/oxd/oxd_openid_scops');
         $setup->deleteConfig('gluu/oxd/oxd_config');
-        $setup->deleteConfig('gluu/oxd/oxd_config_admin');
         $setup->deleteConfig('gluu/oxd/oxd_openid_scops');
         $setup->deleteConfig('gluu/oxd/oxd_openid_custom_scripts');
 
@@ -296,6 +255,28 @@ class GluuOxd_Openid_Adminhtml_IndexController extends Mage_Adminhtml_Controller
             $oxd_config['scope'] =  unserialize(Mage::getStoreConfig ( 'gluu/oxd/oxd_config' ));
         }
         $storeConfig ->saveConfig('gluu/oxd/oxd_config',serialize($oxd_config), 'default', 0);
+
+        $config_option = unserialize(Mage::getStoreConfig ( 'gluu/oxd/oxd_config' ));
+        $updateSiteRegistration = $this->getOxdUpdateSiteRegistrationHelper();
+        $updateSiteRegistration->setRequestOxdId(Mage::getStoreConfig ( 'gluu/oxd/oxd_id' ));
+        $updateSiteRegistration->setRequestAcrValues($config_option['acr_values']);
+        $updateSiteRegistration->setRequestAuthorizationRedirectUri($config_option['authorization_redirect_uri']);
+        $updateSiteRegistration->setRequestRedirectUris($config_option['redirect_uris']);
+        $updateSiteRegistration->setRequestLogoutRedirectUri($config_option['logout_redirect_uri']);
+        $updateSiteRegistration->setRequestContacts([$config_option['admin_email']]);
+        $updateSiteRegistration->setRequestApplicationType('web');
+        $updateSiteRegistration->setRequestScope($config_option['scope']);
+        $updateSiteRegistration->setRequestGrantTypes($config_option['grant_types']);
+        $updateSiteRegistration->setRequestResponseTypes($config_option['response_types']);
+        $updateSiteRegistration->setRequestClientLogoutUri($config_option['logout_redirect_uri']);
+        $status = $updateSiteRegistration->request();
+        if(!$status['status']){
+            $datahelper->displayMessage($status['message'],"ERROR");
+            $this->redirect("*/*/index");
+            return;
+        }
+        $storeConfig ->saveConfig('gluu/oxd/oxd_id',$updateSiteRegistration->getResponseOxdId(), 'default', 0);
+
         $datahelper->displayMessage($message,"SUCCESS");
         $this->redirect("*/*/index");
     }

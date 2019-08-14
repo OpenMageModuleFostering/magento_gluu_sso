@@ -1,207 +1,123 @@
+<?php $this->gluuoxd_openid_login_validate(); ?>
+<style>
+    .gluuox_login_icon_preview{
+        width:35px;
+        cursor:pointer;
+    }
+</style>
+<link  href="<?php echo Mage::getBaseUrl(Mage_Core_Model_Store::URL_TYPE_SKIN).'adminhtml/default/default/GluuOxd_Openid/css/bootstrap-social.css'; ?>" rel="stylesheet">
+<link  href="<?php echo Mage::getBaseUrl(Mage_Core_Model_Store::URL_TYPE_SKIN).'adminhtml/default/default/GluuOxd_Openid/css/font-awesome.min.css'; ?>" rel="stylesheet">
+
+<div id="messages">
+    <ul class="mini-messages">
+        <?php if(Mage::getSingleton('core/session')->getErrorMessage()){?>
+            <li class="error-msg"><ul><li><span><?php echo Mage::getSingleton('core/session')->getErrorMessage(); ?></span><a id="error-cancel" href="#">&times;</a></li></ul></li>
+        <?php }?>
+        <?php if(Mage::getSingleton('core/session')->getSuccessMessage()){?>
+            <li class="success-msg"><ul><li><span><?php echo Mage::getSingleton('core/session')->getSuccessMessage(); ?></span><a id="success-cancel" href="#">&times;</a></li></ul></li>
+        <?php }?>
+    </ul>
+</div>
+
 <?php
-$this->gluuoxd_openid_login_admin();
+    $iconSpace = $this->getOpendIdConfig('iconSpace');
+    if(!$iconSpace) $iconSpace = '4';
+    $iconCustomSize = $this->getOpendIdConfig('iconCustomSize');
+    if(!$iconCustomSize) $iconCustomSize = '35';
+    $iconCustomWidth = $this->getOpendIdConfig('iconCustomWidth');
+    if(!$iconCustomWidth) $iconCustomWidth = '200';
+    $iconCustomHeight = $this->getOpendIdConfig('iconCustomHeight');
+    if(!$iconCustomHeight) $iconCustomHeight = '35';
+    $loginCustomTheme = $this->getOpendIdConfig('loginCustomTheme');
+    $loginTheme = $this->getOpendIdConfig('loginTheme');
+    $iconCustomColor = $this->getOpendIdConfig('iconCustomColor');
+    if(!$iconCustomColor) $iconCustomColor = '#0000FF';
+    $enableds = array();
+    $custom_scripts = unserialize(Mage::getStoreConfig ( 'gluu/oxd/oxd_openid_custom_scripts' ));
+    foreach($custom_scripts as $custom_script){
+        $enableds[] = array('enable'=>$this->getOpendIdConfig($custom_script['value'].'Enable'), 'value'=>$custom_script['value'], 'name'=>$custom_script['name'], 'image'=>$custom_script['image']);
+    }
 ?>
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
-<html xmlns="http://www.w3.org/1999/xhtml" lang="en">
-<head>
-    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    <title><?php echo Mage::helper('adminhtml')->__('Log into Magento Admin Page') ?></title>
-    <link type="text/css" rel="stylesheet" href="<?php echo $this->getSkinUrl('reset.css') ?>" media="all" />
-    <link type="text/css" rel="stylesheet" href="<?php echo $this->getSkinUrl('boxes.css') ?>" media="all" />
-    <link rel="icon" href="<?php echo $this->getSkinUrl('favicon.ico') ?>" type="image/x-icon" />
-    <link rel="shortcut icon" href="<?php echo $this->getSkinUrl('favicon.ico') ?>" type="image/x-icon" />
 
-    <script type="text/javascript" src="<?php echo $this->getJsUrl('prototype/prototype.js') ?>"></script>
-    <script type="text/javascript" src="<?php echo $this->getJsUrl('prototype/validation.js') ?>"></script>
-    <script type="text/javascript" src="<?php echo $this->getJsUrl('scriptaculous/effects.js') ?>"></script>
-    <script type="text/javascript" src="<?php echo $this->getJsUrl('mage/adminhtml/form.js') ?>"></script>
-    <script type="text/javascript" src="<?php echo $this->getJsUrl('mage/captcha.js') ?>"></script>
 
-    <!--[if IE]> <link rel="stylesheet" href="<?php echo $this->getSkinUrl('iestyles.css') ?>" type="text/css" media="all" /> <![endif]-->
-    <!--[if lt IE 7]> <link rel="stylesheet" href="<?php echo $this->getSkinUrl('below_ie7.css') ?>" type="text/css" media="all" /> <![endif]-->
-    <!--[if IE 7]> <link rel="stylesheet" href="<?php echo $this->getSkinUrl('ie7.css') ?>" type="text/css" media="all" /> <![endif]-->
-</head>
-<body id="page-login" onload="document.forms.loginForm.username.focus();">
-<div class="login-container">
-    <div class="login-box">
-        <form method="post" action="" id="loginForm" autocomplete="off">
-            <div class="login-form">
-                <input name="form_key" type="hidden" value="<?php echo $this->getFormKey() ?>" />
-                <h2><?php echo Mage::helper('adminhtml')->__('Log in to Admin Panel') ?></h2>
-                <div id="messages">
-                    <?php echo $this->getMessagesBlock()->toHtml() ?>
-                </div>
-                <div class="input-box input-left"><label for="username"><?php echo Mage::helper('adminhtml')->__('User Name:') ?></label><br/>
-                    <input type="text" id="username" name="login[username]" value="" class="required-entry input-text" /></div>
-                <div class="input-box input-right"><label for="login"><?php echo Mage::helper('adminhtml')->__('Password:') ?></label><br />
-                    <!-- This is a dummy hidden field to trick firefox from auto filling the password -->
-                    <input type="text" class="input-text no-display" name="dummy" id="dummy" />
-                    <input type="password" id="login" name="login[password]" class="required-entry input-text" value="" /></div>
-                <?php echo $this->getChildHtml('form.additional.info'); ?>
-                <div class="clear"></div>
-                <div class="form-buttons">
-                    <a class="left" href="<?php echo Mage::helper('adminhtml')->getUrl('adminhtml/index/forgotpassword', array('_nosecret' => true)) ?>"><?php echo Mage::helper('adminhtml')->__('Forgot your password?') ?></a>
-                    <input type="submit" class="form-button" value="<?php echo Mage::helper('core')->quoteEscape(Mage::helper('adminhtml')->__('Login')) ?>" title="<?php echo Mage::helper('core')->quoteEscape(Mage::helper('adminhtml')->__('Login')) ?>" />
-                </div>
+<?php if($loginTheme=='longbutton') {
+
+    if($loginCustomTheme=='custom') { ?>
+
+        <div><center><br><br><br>
                 <?php
-                if(Mage::getSingleton('admin/session')->isLoggedIn()) {
-                    $customer = Mage::getSingleton('admin/session')->getUser();
-                    ?>
-                    <script type="application/javascript">
-                        location.reload();
-                    </script>
-                    <?php
-                }
-                $oxd_id = Mage::getStoreConfig('gluu/oxd/oxd_id');
-
-                if($oxd_id){
-                    ?>
-                    <style type="text/css">
-                        .gluuox_login_icon_preview{
-                            width:35px;
-                            cursor:pointer;
-                            display:inline;
-                        }
-                        .customer-account-login .page-title{
-                            margin-top: -100px !important;
-                        }
-                    </style>
-                    <link  href="<?php echo Mage::getBaseUrl(Mage_Core_Model_Store::URL_TYPE_SKIN).'adminhtml/default/default/GluuOxd_Openid/css/bootstrap-social.css'; ?>" rel="stylesheet">
-                    <link  href="<?php echo Mage::getBaseUrl(Mage_Core_Model_Store::URL_TYPE_SKIN).'adminhtml/default/default/GluuOxd_Openid/css/font-awesome.min.css'; ?>" rel="stylesheet">
-                    <div id="messages">
-                        <ul class="mini-messages">
-                            <?php if(Mage::getSingleton('core/session')->getErrorMessage()){?>
-                                <li class="error-msg"><ul><li><span><?php echo Mage::getSingleton('core/session')->getErrorMessage(); ?></span><a id="error-cancel" href="#">&times;</a></li></ul></li>
-                            <?php }?>
-                            <?php if(Mage::getSingleton('core/session')->getSuccessMessage()){?>
-                                <li class="success-msg"><ul><li><span><?php echo Mage::getSingleton('core/session')->getSuccessMessage(); ?></span><a id="success-cancel" href="#">&times;</a></li></ul></li>
-                            <?php }?>
-                        </ul>
-                    </div>
-
-                <?php
-                function getConfigForAdmin($config){
-                    $user = Mage::helper('GluuOxd_Openid');
-                    $model = Mage::getModel("admin/user");
-                    $userid = $model->getCollection()->getFirstItem()->getId();
-                    return $user->getConfig($config,$userid);
-                }
-                function getOpendIdConfig($data){
-                    return Mage::helper('GluuOxd_Openid')->getConfig($data);
-                }
-                function getOpenIdAdminUrl(){
-                    return Mage::helper("adminhtml")->getUrl("*/index/index");
-                }
-                $iconSpace = getConfigForAdmin('iconSpace');
-                if(!$iconSpace) $iconSpace = '4';
-                $iconCustomSize = getConfigForAdmin('iconCustomSize');
-                if(!$iconCustomSize) $iconCustomSize = '35';
-                $iconCustomWidth = getConfigForAdmin('iconCustomWidth');
-                if(!$iconCustomWidth) $iconCustomWidth = '200';
-                $iconCustomHeight = getConfigForAdmin('iconCustomHeight');
-                if(!$iconCustomHeight) $iconCustomHeight = '35';
-                $loginCustomTheme = getConfigForAdmin('loginCustomTheme');
-                $loginTheme = getConfigForAdmin('loginTheme');
-                $iconCustomColor = getConfigForAdmin('iconCustomColor');
-                if(!$iconCustomColor) $iconCustomColor = '#0000FF';
-
-                $enableds = array();
-                $custom_scripts = unserialize(Mage::getStoreConfig ( 'gluu/oxd/oxd_openid_custom_scripts' ));
-                foreach($custom_scripts as $custom_script){
-                    $enableds[] = array('enable'=>getOpendIdConfig($custom_script['value'].'Enable'), 'value'=>$custom_script['value'], 'name'=>$custom_script['name'], 'image'=>$custom_script['image']);
+                foreach($enableds as $enabled){
+                    if($enabled['enable']){
+                        ?>
+                        <a id="gluuOx_custom_login_button_preview_<?php echo $enabled['value'];?>" class="btn btn-block btn-customtheme btn-social   btn-custom-size" style="width:<?php echo $iconCustomWidth;?>px;height:<?php echo $iconCustomHeight;?>px;padding-top: 6px;padding-bottom: 6px;margin-bottom:<?php echo $iconSpace;?>px;background:<?php echo $iconCustomColor;?>" onclick="socialLogin('<?php echo $enabled['value'];?>')" >
+                            <i class="fa fa-<?php echo $enabled['value'];?>-plus"></i>Login with <?php echo $enabled['name'];?>
+                        </a>
+                    <?php }
                 }
                 ?>
+        </div>
+
+    <?php } else { ?>
+        <div>
+            <center><br><br><br>
                 <?php
-                if($loginTheme=='longbutton') {
+                foreach($enableds as $enabled){
+                    if($enabled['enable']){
+                        ?>
+                        <a id="gluuox_login_button_preview_<?php echo $enabled['value'];?>" class="btn btn-block btn-defaulttheme btn-social btn-<?php echo $enabled['value'];?> btn-custom-size" style="width: <?php echo $iconCustomWidth;?>px; height:<?php echo $iconCustomHeight;?>px; padding-top: 6px; padding-bottom: 6px; margin-bottom: <?php echo $iconSpace.'px'; ?>"  onclick="socialLogin('<?php echo $enabled['value'];?>')" >
+                            <i class="fa fa-<?php echo $enabled['value'];?>-plus" style="padding-top: 0px;"></i>Login with <?php echo $enabled['name'];?>
+                        </a>
+                    <?php }
+                }
+                ?>
+            </center>
+        </div>
+    <?php } ?>
 
-                $paddingLong = 0;
-                if($iconCustomHeight>26)
-                    $paddingLong = ($iconCustomHeight-26)/2;
-                if($loginCustomTheme=='custom') { ?>
+<?php } else {
+    ?>
+    <style>.gluuOx_custom_login_icon_preview{cursor:pointer;}</style>
+    <?php
+    if($loginTheme=='circle'){ ?>
+        <style> .gluuox_login_icon_preview, .gluuOx_custom_login_icon_preview{border-radius: 999px !important;}</style>
+    <?php } else if($loginTheme=='oval'){ ?>
+        <style> .gluuox_login_icon_preview, .gluuOx_custom_login_icon_preview{border-radius: 5px !important;}</style>
+    <?php }
 
-                    <div>
-                        <center>
-                            <?php
-                            foreach($enableds as $enabled){
-                                if($enabled['enable']){
-                                    ?>
-                                    <a id="gluuOx_custom_login_button_preview_<?php echo $enabled['value'];?>" class="btn btn-block btn-customtheme btn-social   btn-custom-size" style="width:<?php echo $iconCustomWidth;?>px;height:<?php echo $iconCustomHeight;?>px;padding-top: <?php echo $paddingLong;?>px;padding-bottom: <?php echo $paddingLong;?>px;margin-bottom:<?php echo $iconSpace;?>px;background:<?php echo $iconCustomColor;?>" onclick="socialLogin('<?php echo $enabled['value'];?>')" >
-                                        <i class="fa fa-<?php echo $enabled['value'];?>-plus"></i>Login with <?php echo $enabled['name'];?>
-                                    </a>
-                                <?php }
-                            }
-                            ?>
-                        </center></div>
-
-                <?php } else { ?>
-                    <div><center>
-                            <?php
-                            foreach($enableds as $enabled){
-                                if($enabled['enable']){
-                                    ?>
-                                    <a id="gluuox_login_button_preview_<?php echo $enabled['value'];?>" class="btn btn-block btn-defaulttheme btn-social btn-<?php echo $enabled['value'];?> btn-custom-size" style="width: <?php echo $iconCustomWidth;?>px; height:<?php echo $iconCustomHeight;?>px; padding-top: <?php echo $paddingLong;?>px; padding-bottom: <?php echo $paddingLong;?>px; margin-bottom: <?php echo $iconSpace.'px'; ?>"  onclick="socialLogin('<?php echo $enabled['value'];?>')" >
-                                        <i class="fa fa-<?php echo $enabled['value'];?>-plus" style="padding-top: 0px;"></i>Login with <?php echo $enabled['name'];?></a>
-                                <?php }
-                            }
-                            ?>
-                        </center></div>
-                <?php } ?>
-
-                <?php }
-                else {
+    if($loginCustomTheme=='custom') { ?>
+        <div>
+            <?php
+            foreach($enableds as $enabled){
+                if($enabled['enable']){
                     ?>
-                    <style>.gluuOx_custom_login_icon_preview{cursor:pointer;}</style>
-                    <?php
-                if($loginTheme=='circle'){ ?>
-                    <style> .gluuox_login_icon_preview, .gluuOx_custom_login_icon_preview{border-radius: 999px !important;}</style>
-                <?php } else if($loginTheme=='oval'){ ?>
-                    <style> .gluuox_login_icon_preview, .gluuOx_custom_login_icon_preview{border-radius: 5px !important;}</style>
+                    <i class="gluuOx_custom_login_icon_preview fa fa-<?php echo $enabled['value'];?>-plus" id="gluuOx_custom_login_icon_preview_<?php echo $enabled['value'];?>"  style="color: rgb(255, 255, 255); text-align: center; margin-top: 5px; height: <?php echo $iconCustomSize-8;?>px; width: <?php echo $iconCustomSize;?>px; padding-top: 8px; margin-left: <?php echo $iconSpace.'px'; ?>; font-size: <?php echo $iconCustomSize-16;?>px; background: <?php echo $iconCustomColor;?>"  onclick="socialLogin('<?php echo $enabled['value'];?>')" ></i>
+
                 <?php }
+            }
+            ?>
 
-                if($loginCustomTheme=='custom') { ?>
-                    <div>
-                        <?php
-                        foreach($enableds as $enabled){
-                            if($enabled['enable']){
-                                ?>
-                                <i class="gluuOx_custom_login_icon_preview fa fa-<?php echo $enabled['value'];?>-plus" id="gluuOx_custom_login_icon_preview_<?php echo $enabled['value'];?>"  style="color: rgb(255, 255, 255); text-align: center; margin-top: 5px; height: <?php echo $iconCustomSize;?>px; width: <?php echo $iconCustomSize;?>px; padding-top: 8px; margin-left: <?php echo $iconSpace.'px'; ?>; font-size: <?php echo $iconCustomSize-16;?>px; background: <?php echo $iconCustomColor;?>;"  onclick="socialLogin('<?php echo $enabled['value'];?>')" ></i>
+        </div>
+    <?php } else { ?>
+        <div style="margin-top:60px">
+            <?php
+            foreach($enableds as $enabled){
+                if($enabled['enable']){
+                    ?>
+                    <img class="gluuox_login_icon_preview" id="gluuox_login_icon_preview_<?php echo $enabled['value'];?>" src="<?php echo $enabled['image']; ?>"
+                         style="margin-left: <?php echo $iconSpace.'px'; ?>; height:<?php echo $iconCustomSize;?>px; width:<?php echo $iconCustomSize;?>px;" onclick="socialLogin('<?php echo $enabled['value'];?>')"  />
+                    <i class="gluuOx_custom_login_icon_preview fa fa-<?php echo $enabled['value'];?>-plus" id="gluuOx_custom_login_icon_preview_<?php echo $enabled['value'];?>"  style="color: rgb(255, 255, 255); text-align: center; margin-top: 5px; height: <?php echo $iconCustomSize-8;?>px; width: <?php echo $iconCustomSize;?>px; padding-top: 8px; margin-left: <?php echo $iconSpace.'px'; ?>; font-size: <?php echo $iconCustomSize-16;?>px; background: <?php echo $iconCustomColor;?>"  onclick="socialLogin('<?php echo $enabled['value'];?>')" ></i>
 
-                            <?php }
-                        }
-                        ?>
-                    </div>
-                <?php } else { ?>
-                    <div>
-                        <?php
-                        foreach($enableds as $enabled){
-                            if($enabled['enable']){
-                                ?>
-                                <img class="gluuox_login_icon_preview" id="gluuox_login_icon_preview_<?php echo $enabled['value'];?>" src="<?php echo $enabled['image']; ?>"
-                                     style="margin-left: <?php echo $iconSpace.'px'; ?>; height:<?php echo $iconCustomSize;?>px; width:<?php echo $iconCustomSize;?>px;" onclick="socialLogin('<?php echo $enabled['value'];?>')"  />
-
-                            <?php }
-                        }
-                        ?>
-                    </div>
                 <?php }
-                } ?>
-                    <script type="application/javascript">
-                        var baseUrl = '<?php echo getOpenIdAdminUrl(); ?>';
+            }
+            ?>
+        </div>
+    <?php }
+} ?>
 
-                        function socialLogin(appName){
-                            window.location.href = window.location + "?option=userGluuLoginAdmin&app_name="+appName;
-                        }
-                    </script>
-                <?php }?>
-            </div>
-            <p class="legal"><?php echo Mage::helper('adminhtml')->__('Magento is a trademark of Magento Inc. Copyright &copy; %s Magento Inc.', date('Y')) ?></p>
-        </form>
-        <div class="bottom"></div>
-        <script type="text/javascript">
-            var loginForm = new varienForm('loginForm');
-        </script>
-    </div>
-</div>
-</body>
-</html>
+<script>
+    var baseUrl = '<?php echo $this->getOpenIdAdminUrl(); ?>';
 
+    function socialLogin(appName){
+        window.location.href = window.location + '?option=getMoSocialLogin&app_name='+appName;
+    }
+</script>
