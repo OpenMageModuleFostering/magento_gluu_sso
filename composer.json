@@ -1,0 +1,16 @@
+{
+    "name": "OpenMageModuleFostering/Magento_gluu_SSO",
+    "type": "magento-module",
+    "license": "Gluu-inc.",
+    "homepage": "",
+    "description": "Gluu and Social login extension for magento",
+    "authors": [
+    {
+        "name": "Vlad",
+        "email": "vlad.karapetyan.1988@mail.ru"
+    }
+],
+    "suggest": {
+        "magento-hackathon/magento-composer-installer": "*"
+    }
+}
