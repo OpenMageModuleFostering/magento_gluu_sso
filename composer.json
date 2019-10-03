@@ -1,16 +1,19 @@
 {
-    "name": "OpenMageModuleFostering/Magento_gluu_SSO",
+    "name": "OpenMageModuleFostering\/Magento_gluu_SSO",
     "type": "magento-module",
     "license": "Gluu-inc.",
     "homepage": "",
     "description": "Gluu OpenID Connect SSO extension for magento",
     "authors": [
-    {
-        "name": "Volodya",
-        "email": "mr.karapetyan88@gmail.com"
-    }
-],
+        {
+            "name": "Volodya",
+            "email": "mr.karapetyan88@gmail.com"
+        }
+    ],
     "suggest": {
-        "magento-hackathon/magento-composer-installer": "*"
-    }
+        "magento-hackathon\/magento-composer-installer": "*"
+    },
+    "keywords": [
+        "openmage-module"
+    ]
 }
