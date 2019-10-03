@@ -1,5 +1,5 @@
 {
-    "name": "OpenMageModuleFostering\/Magento_gluu_SSO",
+    "name": "openmage-module-fostering\/magento_gluu_sso",
     "type": "magento-module",
     "license": "Gluu-inc.",
     "homepage": "",
